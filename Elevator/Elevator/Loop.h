@@ -1,9 +1,11 @@
 #pragma once
 #include <SDL/SDL.h>
+#include <SDL/SDL_image.h>
 #include <GL/glew.h>
 
 #include "Elevator.h"
 #include "Floor.h"
+#include "Image.h"
 
 // MAXIMUM HEIGHT OF BUILDING
 const int MAX_HEIGHT = 48;
@@ -49,6 +51,8 @@ private:
 	// Prints the current state of elevators (Console)
 	void printCurrentState();
 
+	void updateWindow();
+
 	// Returns the closest elevator
 	int getClosest(int f);
 
@@ -80,14 +84,19 @@ private:
 	// Updates every elevator's destinations
 	void updateDestinations();
 
+	// Reports Error
+	void reportError(std::string e);
+
 	// Elevators
 	Elevator elevator[N_ELEVATORS];
 	
 	// Floors
 	Floor floor[MAX_HEIGHT];
 
-	SDL_Window* window;
 	int screenWidth;
 	int screenHeight;
 	LoopState loopState;
+
+	SDL_Window* window;
+	SDL_Renderer* renderer;
 };

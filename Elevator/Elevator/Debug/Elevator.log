@@ -1,3 +1,4 @@
 ﻿  Loop.cpp
+c:\users\jinyoung park\documents\visual studio 2017\projects\elevator\elevator\loop.cpp(70): warning C4244: 'argument': conversion from 'double' to 'int', possible loss of data
   Elevator.vcxproj -> C:\Users\Jinyoung Park\documents\visual studio 2017\Projects\Elevator\Debug\Elevator.exe
   Elevator.vcxproj -> C:\Users\Jinyoung Park\documents\visual studio 2017\Projects\Elevator\Debug\Elevator.pdb (Partial PDB)

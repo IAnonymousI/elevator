@@ -12,8 +12,11 @@ public:
 	Floor();
 	~Floor();
 
-	// Randomly presses buttons
-	void pressButtons();
+	void setFloor(int f);
+
+	// Residents request to go up/down
+	// Returns their desired destination
+	int pressButtons();
 
 	// Disables buttons
 	void disableUpButton();
@@ -27,6 +30,9 @@ public:
 
 private:
 
+	// State of the buttons
 	bool upButton;
 	bool downButton;
+
+	int floor;
 };

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include <stdlib.h>
 #include <ctime>
 
@@ -33,19 +34,60 @@ void Loop::run() {
 // Initializes Loop
 void Loop::init() {
 
+	// Sets every floor
+	for (int i = 0; i < MAX_HEIGHT; i++) {
+		floor[i].setFloor(i + 1);
+	}
+
 	// Initializes SDL
-	SDL_Init(SDL_INIT_EVERYTHING);
+	if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+		reportError("SDL could not be initialized...");
+	}
+
+	if (IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG) {
+		reportError("SDL_image could not be initialized...");
+	}
 
 	// Creates a window
-	window = SDL_CreateWindow("Elevator", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, screenWidth, screenHeight, SDL_WINDOW_OPENGL);
+	window = SDL_CreateWindow("Elevator", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenWidth, screenHeight, SDL_WINDOW_OPENGL);
+	if (window == nullptr) {
+		reportError("SDL Window could not be created...");
+	}
+
+	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+
+	// Creates Context
+	SDL_GLContext glContext = SDL_GL_CreateContext(window);
+	if (glContext == nullptr) {
+		reportError("GLContext could not be created...");
+	}
+
+	if (glewInit() != GLEW_NO_ERROR) {
+		reportError("Glew could not be initialized...");
+	}
+
+	// Keeps from flickering (double buffer)
+	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1.0);
+
+	// Sets background color to white
+	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+
+	Image tImage = Image(renderer, 100, 100, 256, 256, "Textures/Numbers/1.png");
+	tImage.draw();
+	SDL_RenderPresent(renderer);
 }
 
 void Loop::processInput(){
 	SDL_Event e;
 	while (SDL_PollEvent(&e)) {
 		switch (e.type) {
+
 		case SDL_QUIT:
 			loopState = LoopState::OFF;
+			SDL_DestroyRenderer(renderer);
+			SDL_DestroyWindow(window);
+			IMG_Quit();
+			SDL_Quit();
 			break;
 		}
 	}
@@ -64,6 +106,7 @@ void Loop::processLoop(){
 
 		end = clock();
 
+		// Times when to update (1 sec)
 		if (double(end - begin) / CLOCKS_PER_SEC >= 1) {
 
 			// Clears screen
@@ -114,6 +157,17 @@ void Loop::printCurrentState() {
 			std::cout << d << " ";
 		}
 	}
+}
+
+void Loop::updateWindow(){
+	// Clears Depth
+	glClearDepth(1.0);
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	SDL_RenderPresent(renderer);
+
+	SDL_GL_SwapWindow(window);
 }
 
 // Returns the closest elevator
@@ -172,51 +226,6 @@ int Loop::getAvailable(int f, Direction d) {
 		}
 	}
 	return e_quickest;
-	/*
-	Direction cDirection = elevator[tClosest].getDirection();
-	int farther = getFarther(f, tClosest);
-	
-	// Case 1: Closest is stationary -> Available
-	if (cDirection == STATIONARY) {
-		return tClosest;
-	}
-
-	// Case 2: Closest is in the SAME direction -> Check whether it is moving towards or away
-	// IF TOWARDS -> Available
-	// IF AWAY -> Get another elevator
-	else if (cDirection == d) {
-		if (cDirection == UP) {
-			if (f > elevator[tClosest].getLevel()) {
-				return tClosest;
-			}
-			else {
-				if (farther == N_ELEVATORS) {
-					return getClosest(f);
-				}
-				return getAvailable(f, d, farther);
-			}
-		}
-		else {
-			if (f < elevator[tClosest].getLevel()) {
-				return tClosest;
-			}
-			else {
-				if (farther == N_ELEVATORS) {
-					return getClosest(f);
-				}
-				return getAvailable(f, d, farther);
-			}
-		}
-	}
-
-	// Case 3: Closest is in the OPPOSITE direction -> Get another elevator
-	else {
-		if (farther == N_ELEVATORS) {
-			return getClosest(f);
-		}
-		return getAvailable(f, d, farther);
-	}
-	*/
 }
 
 // Returns the distance between a elevator and a floor
@@ -325,4 +334,10 @@ void Loop::updateDestinations() {
 			floor[i - 1].disableDownButton();
 		}
 	}
+}
+
+void Loop::reportError(std::string e){
+	int pause;
+	std::cout << e << std::endl << "Press any key to continue...";
+	std::cin >> pause;
 }
