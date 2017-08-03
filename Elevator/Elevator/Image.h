@@ -6,8 +6,16 @@ class Image
 {
 
 public:
-	Image(SDL_Renderer* r, int x, int y, int w, int h, const std::string path);
+	Image();
 	~Image();
+
+	void init(SDL_Renderer* r, int x, int y, int w, int h, const std::string path);
+	void changeImage(const std::string path);
+
+	int getX();
+	int getY();
+	int getW();
+	int getH();
 
 	void draw();
 

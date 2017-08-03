@@ -2,6 +2,7 @@
 #include <string>
 #include <stdlib.h>
 #include <ctime>
+#include <time.h>
 
 #include "Loop.h"
 
@@ -18,6 +19,7 @@ Loop::Loop() {
 
 	// State of Loop
 	loopState = ON;
+	mRandom = DEACTIVATED;
 }
 Loop::~Loop() {}
 
@@ -33,14 +35,20 @@ void Loop::run() {
 
 // Initializes Loop
 void Loop::init() {
+	
+	srand((unsigned int)time(NULL));
 
 	// Sets every floor
 	for (int i = 0; i < MAX_HEIGHT; i++) {
 		floor[i].setFloor(i + 1);
 	}
 
+	for (int i = 0; i < N_ELEVATORS; i++) {
+		elevator[i].setLevel((i + 1) * 10);
+	}
+
 	// Initializes SDL
-	if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		reportError("SDL could not be initialized...");
 	}
 
@@ -56,32 +64,97 @@ void Loop::init() {
 
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-	// Creates Context
-	SDL_GLContext glContext = SDL_GL_CreateContext(window);
-	if (glContext == nullptr) {
-		reportError("GLContext could not be created...");
-	}
+	background.init(renderer, 0, 0, 640, 480, "Textures/background.jpg");
+	E1.init(renderer, 58, 5, 64, 25, "Textures/E1.png");
+	E2.init(renderer, 211, 5, 64, 25, "Textures/E2.png");
+	E3.init(renderer, 365, 5, 64, 25, "Textures/E3.png");
+	E4.init(renderer, 518, 5, 64, 25, "Textures/E4.png");
+	E1F.init(renderer, 26, 35, 128, 128, "Textures/Numbers/--.png");
+	E2F.init(renderer, 179, 35, 128, 128, "Textures/Numbers/--.png");
+	E3F.init(renderer, 333, 35, 128, 128, "Textures/Numbers/--.png");
+	E4F.init(renderer, 486, 35, 128, 128, "Textures/Numbers/--.png");
+	BStop.init(renderer, 26, 188, 128, 64, "Textures/button_stop.png");
+	BRandom.init(renderer, 179, 188, 94, 64, "Textures/button_random_short.png");
+	BRandomUp.init(renderer, 277, 188, 30, 30, "Textures/button_random_up.png");
+	BRandomDown.init(renderer, 277, 222, 30, 30, "Textures/button_random_down.png");
+	BManual.init(renderer, 333, 188, 128, 64, "Textures/button_manual.png");
 
-	if (glewInit() != GLEW_NO_ERROR) {
-		reportError("Glew could not be initialized...");
-	}
+	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+	SDL_RenderClear(renderer);
+	std::cout << SDL_GetError();
 
-	// Keeps from flickering (double buffer)
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1.0);
-
-	// Sets background color to white
-	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-	Image tImage = Image(renderer, 100, 100, 256, 256, "Textures/Numbers/1.png");
-	tImage.draw();
-	SDL_RenderPresent(renderer);
+	background.draw();
+	E1.draw();
+	E2.draw();
+	E3.draw();
+	E4.draw();
+	E1F.draw();
+	E2F.draw();
+	E3F.draw();
+	E4F.draw();
+	BStop.draw();
+	BRandom.draw();
+	BRandomUp.draw();
+	BRandomDown.draw();
+	BManual.draw();
 }
 
 void Loop::processInput(){
 	SDL_Event e;
 	while (SDL_PollEvent(&e)) {
 		switch (e.type) {
-
+		case SDL_MOUSEBUTTONDOWN:
+			if (withinBoundaries(&BRandom, e.motion.x, e.motion.y)) {
+				BRandom.changeImage("Textures/button_random_short_pressed.png");
+				BRandom.draw();
+			}
+			else if (withinBoundaries(&BRandomUp, e.motion.x, e.motion.y)) {
+				BRandomUp.changeImage("Textures/button_random_up_pressed.png");
+				BRandomUp.draw();
+			}
+			else if (withinBoundaries(&BRandomDown, e.motion.x, e.motion.y)) {
+				BRandomDown.changeImage("Textures/button_random_down_pressed.png");
+				BRandomDown.draw();
+			}
+			else if(withinBoundaries(&BStop, e.motion.x, e.motion.y)){
+				BStop.changeImage("Textures/button_stop_pressed.png");
+				BStop.draw();
+			}
+			else if (withinBoundaries(&BManual, e.motion.x, e.motion.y)) {
+				BManual.changeImage("Textures/button_manual_pressed.png");
+				BManual.draw();
+			}
+			break;
+		case SDL_MOUSEBUTTONUP:
+			if (withinBoundaries(&BRandom, e.motion.x, e.motion.y)) {
+				mRandom = ACTIVATED;
+				BRandom.changeImage("Textures/button_random_short.png");
+				BRandom.draw();
+			}
+			else if (withinBoundaries(&BRandomUp, e.motion.x, e.motion.y)) {
+				for (int i = 0; i < MAX_HEIGHT; i++) {
+					floor[i].incRate();
+				}
+				BRandomUp.changeImage("Textures/button_random_up.png");
+				BRandomUp.draw();
+			}
+			else if (withinBoundaries(&BRandomDown, e.motion.x, e.motion.y)) {
+				for (int i = 0; i < MAX_HEIGHT; i++) {
+					floor[i].decRate();
+				}
+				BRandomDown.changeImage("Textures/button_random_down.png");
+				BRandomDown.draw();
+			}
+			else if (withinBoundaries(&BStop, e.motion.x, e.motion.y)) {
+				mRandom = DEACTIVATED;
+				BStop.changeImage("Textures/button_stop.png");
+				BStop.draw();
+			}
+			else if (withinBoundaries(&BManual, e.motion.x, e.motion.y)) {
+				BManual.changeImage("Textures/button_manual.png");
+				BManual.draw();
+			}
+			break;
 		case SDL_QUIT:
 			loopState = LoopState::OFF;
 			SDL_DestroyRenderer(renderer);
@@ -103,6 +176,8 @@ void Loop::processLoop(){
 
 		// Processes Input
 		processInput();
+
+		updateWindow();
 
 		end = clock();
 
@@ -133,8 +208,9 @@ void Loop::update() {
 	// Moves elevators according to their direction and remove destinaions when they reach them
 	moveElevators();
 
-	// Updates (randomly presses) buttons
-	updateButtons();
+	if (mRandom == ACTIVATED) {
+		randomPress();
+	}
 
 	// Checks whether elevators have reached their destinations and turns buttons off
 	updateDestinations();
@@ -142,15 +218,14 @@ void Loop::update() {
 
 // Prints the current state of elevators (Console)
 void Loop::printCurrentState() {
-	std::cout << "Elevator: \t";
-	for (int i = 1; i <= N_ELEVATORS; i++) {
-		std::cout << "#" << i << "\t";
+	std::cout << "Random Mode: ";
+	if (mRandom == ACTIVATED) {
+		std::cout << "ACTIVATED";
 	}
-	std::cout << "\nFloor:\t\t";
-	for (int i = 0; i < N_ELEVATORS; i++) {
-		std::cout << elevator[i].getLevel() << "\t";
+	else if(mRandom == DEACTIVATED){
+		std::cout << "DEACTIVATED";
 	}
-	std::cout << "\n";
+	std::cout << "\nRandomness Value: " << floor[0].getRValue();
 	for (int i = 0; i < N_ELEVATORS; i++) {
 		std::cout << "\nElevator " << i + 1 << " destinations: ";
 		for (auto d : *(elevator[i].getPDestinations())) {
@@ -160,14 +235,135 @@ void Loop::printCurrentState() {
 }
 
 void Loop::updateWindow(){
-	// Clears Depth
-	glClearDepth(1.0);
-
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+	updateEF();
 	SDL_RenderPresent(renderer);
+}
 
-	SDL_GL_SwapWindow(window);
+bool Loop::withinBoundaries(Image* i, int mX, int mY)
+{
+	if (mX >= i->getX() && mX <= (i->getX() + i->getW()) && mY >= i->getY() && mY <= (i->getY() + i->getH())) {
+		return true;
+	}
+	return false;
+}
+
+std::string Loop::getNumberImagePath(int n)
+{
+	switch (n) {
+	case 1:
+		return "Textures/Numbers/1.png";
+	case 2:
+		return "Textures/Numbers/2.png";
+	case 3:
+		return "Textures/Numbers/3.png";
+	case 4:
+		return "Textures/Numbers/4.png";
+	case 5:
+		return "Textures/Numbers/5.png";
+	case 6:
+		return "Textures/Numbers/6.png";
+	case 7:
+		return "Textures/Numbers/7.png";
+	case 8:
+		return "Textures/Numbers/8.png";
+	case 9:
+		return "Textures/Numbers/9.png";
+	case 10:
+		return "Textures/Numbers/10.png";
+	case 11:
+		return "Textures/Numbers/11.png";
+	case 12:
+		return "Textures/Numbers/12.png";
+	case 13:
+		return "Textures/Numbers/13.png";
+	case 14:
+		return "Textures/Numbers/14.png";
+	case 15:
+		return "Textures/Numbers/15.png";
+	case 16:
+		return "Textures/Numbers/16.png";
+	case 17:
+		return "Textures/Numbers/17.png";
+	case 18:
+		return "Textures/Numbers/18.png";
+	case 19:
+		return "Textures/Numbers/19.png";
+	case 20:
+		return "Textures/Numbers/20.png";
+	case 21:
+		return "Textures/Numbers/21.png";
+	case 22:
+		return "Textures/Numbers/22.png";
+	case 23:
+		return "Textures/Numbers/23.png";
+	case 24:
+		return "Textures/Numbers/24.png";
+	case 25:
+		return "Textures/Numbers/25.png";
+	case 26:
+		return "Textures/Numbers/26.png";
+	case 27:
+		return "Textures/Numbers/27.png";
+	case 28:
+		return "Textures/Numbers/28.png";
+	case 29:
+		return "Textures/Numbers/29.png";
+	case 30:
+		return "Textures/Numbers/30.png";
+	case 31:
+		return "Textures/Numbers/31.png";
+	case 32:
+		return "Textures/Numbers/32.png";
+	case 33:
+		return "Textures/Numbers/33.png";
+	case 34:
+		return "Textures/Numbers/34.png";
+	case 35:
+		return "Textures/Numbers/35.png";
+	case 36:
+		return "Textures/Numbers/36.png";
+	case 37:
+		return "Textures/Numbers/37.png";
+	case 38:
+		return "Textures/Numbers/38.png";
+	case 39:
+		return "Textures/Numbers/39.png";
+	case 40:
+		return "Textures/Numbers/40.png";
+	case 41:
+		return "Textures/Numbers/41.png";
+	case 42:
+		return "Textures/Numbers/42.png";
+	case 43:
+		return "Textures/Numbers/43.png";
+	case 44:
+		return "Textures/Numbers/44.png";
+	case 45:
+		return "Textures/Numbers/45.png";
+	case 46:
+		return "Textures/Numbers/46.png";
+	case 47:
+		return "Textures/Numbers/47.png";
+	case 48:
+		return "Textures/Numbers/48.png";
+	case 49:
+		return "Textures/Numbers/49.png";
+	case 50:
+		return "Textures/Numbers/50.png";
+	default:
+		return "Textures/Numbers/--.png";
+	}
+}
+
+void Loop::updateEF(){
+	E1F.changeImage(getNumberImagePath(elevator[0].getLevel()));
+	E2F.changeImage(getNumberImagePath(elevator[1].getLevel()));
+	E3F.changeImage(getNumberImagePath(elevator[2].getLevel()));
+	E4F.changeImage(getNumberImagePath(elevator[3].getLevel()));
+	E1F.draw();
+	E2F.draw();
+	E3F.draw();
+	E4F.draw();
 }
 
 // Returns the closest elevator
@@ -316,7 +512,7 @@ void Loop::updateDirection(int e) {
 }
 
 // Updates (randomly presses) buttons
-void Loop::updateButtons() {
+void Loop::randomPress() {
 	for (int i = 0; i < MAX_HEIGHT; i++) {
 		floor[i].pressButtons();
 	}

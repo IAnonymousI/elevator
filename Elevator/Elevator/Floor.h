@@ -3,9 +3,6 @@
 // Residents per floor
 const int N_RESIDENTS = 9;
 
-// Rate of button pushes
-const int R_BUTTONS = 5000;
-
 class Floor
 {
 public:
@@ -13,6 +10,9 @@ public:
 	~Floor();
 
 	void setFloor(int f);
+
+	void incRate();
+	void decRate();
 
 	// Residents request to go up/down
 	// Returns their desired destination
@@ -22,6 +22,8 @@ public:
 	void disableUpButton();
 	void disableDownButton();
 
+	int getRValue();
+
 	// Returns whether upButton has been pushed or not
 	bool getUpButton();
 
@@ -29,6 +31,9 @@ public:
 	bool getDownButton();
 
 private:
+
+	// Rate of button pushes
+	int r_buttons;
 
 	// State of the buttons
 	bool upButton;

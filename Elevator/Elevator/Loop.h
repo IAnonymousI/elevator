@@ -1,7 +1,6 @@
 #pragma once
 #include <SDL/SDL.h>
 #include <SDL/SDL_image.h>
-#include <GL/glew.h>
 
 #include "Elevator.h"
 #include "Floor.h"
@@ -21,6 +20,10 @@ const int S_ELEVATORS = 1;
 
 enum LoopState {
 	ON, OFF
+};
+
+enum Mode {
+	ACTIVATED, DEACTIVATED
 };
 
 // Starts the simulation
@@ -51,7 +54,16 @@ private:
 	// Prints the current state of elevators (Console)
 	void printCurrentState();
 
+	// Updates the SDL window
 	void updateWindow();
+
+	// Checks whether the cursor is within the boundaries of an image
+	bool withinBoundaries(Image* i, int mX, int mY);
+
+	// Returns an image of the number given
+	std::string getNumberImagePath(int n);
+
+	void updateEF();
 
 	// Returns the closest elevator
 	int getClosest(int f);
@@ -79,7 +91,7 @@ private:
 	void updateDirection(int e);
 
 	// Updates every floor's buttons
-	void updateButtons();
+	void randomPress();
 
 	// Updates every elevator's destinations
 	void updateDestinations();
@@ -96,7 +108,13 @@ private:
 	int screenWidth;
 	int screenHeight;
 	LoopState loopState;
+	Mode mRandom;
 
 	SDL_Window* window;
 	SDL_Renderer* renderer;
+
+	Image background;
+	Image E1, E2, E3, E4;
+	Image E1F, E2F, E3F, E4F;
+	Image BStop, BRandom, BRandomUp, BRandomDown, BManual;
 };
