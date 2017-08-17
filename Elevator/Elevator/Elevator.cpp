@@ -2,6 +2,8 @@
 
 Elevator::Elevator()
 {
+	counter = 0;
+	pausedDirection = STATIONARY;
 	level = 1;
 	dir = STATIONARY;
 }
@@ -24,6 +26,15 @@ std::list<int>* Elevator::getPDestinations()
 	return &destinations;
 }
 
+std::list<int>* Elevator::getPAbove(){
+	return &above;
+}
+
+std::list<int>* Elevator::getPBelow()
+{
+	return &below;
+}
+
 Direction Elevator::getDirection() {
 	return dir;
 }
@@ -42,4 +53,26 @@ void Elevator::addDestination(int d) {
 
 	// Deletes repeats
 	destinations.unique();
+}
+
+void Elevator::addAbove(int d){
+	// Adds the destination to the front
+	above.push_front(d);
+
+	// Sorts the destinations
+	above.sort();
+
+	// Deletes repeats
+	above.unique();
+}
+
+void Elevator::addBelow(int d) {
+	// Adds the destination to the front
+	below.push_front(d);
+
+	// Sorts the destinations
+	below.sort();
+
+	// Deletes repeats
+	below.unique();
 }

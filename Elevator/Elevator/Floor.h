@@ -9,19 +9,24 @@ public:
 	Floor();
 	~Floor();
 
+	// Set floor
 	void setFloor(int f);
 
+	// Increases/Decreases r_buttons by 100
 	void incRate();
 	void decRate();
 
 	// Residents request to go up/down
-	// Returns their desired destination
-	int pressButtons();
+	void pressFloorButtons();
+
+	// After residents get onto the elevator, they request a certain floor that they want to go to
+	int pressElevatorButtons();
 
 	// Disables buttons
 	void disableUpButton();
 	void disableDownButton();
 
+	// Returns r_buttons
 	int getRValue();
 
 	// Returns whether upButton has been pushed or not
@@ -39,5 +44,6 @@ private:
 	bool upButton;
 	bool downButton;
 
+	// Assigned Floor
 	int floor;
 };

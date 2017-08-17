@@ -18,10 +18,12 @@ const int N_ELEVATORS = 4;
 // SPEED OF ELEVATORS
 const int S_ELEVATORS = 1;
 
+// Loop Indicator
 enum LoopState {
 	ON, OFF
 };
 
+// Mode Indicator
 enum Mode {
 	ACTIVATED, DEACTIVATED
 };
@@ -62,8 +64,15 @@ private:
 
 	// Returns an image of the number given
 	std::string getNumberImagePath(int n);
+	
+	std::string getElevatorImageFile(Direction d);
 
-	void updateEF();
+	// Updates Elevator floor images
+	void updateEI();
+
+	// Opens/closes door for 3 seconds
+	void openDoor(int e);
+	void closeDoor(int e);
 
 	// Returns the closest elevator
 	int getClosest(int f);
@@ -105,16 +114,35 @@ private:
 	// Floors
 	Floor floor[MAX_HEIGHT];
 
+	// Width of the window
 	int screenWidth;
+
+	// Height of the window
 	int screenHeight;
+
+	// Loop Indicator
 	LoopState loopState;
+
+	// Random Mode Indicator
 	Mode mRandom;
 
+	// Window
 	SDL_Window* window;
+
+	// Renderer
 	SDL_Renderer* renderer;
 
 	Image background;
-	Image E1, E2, E3, E4;
-	Image E1F, E2F, E3F, E4F;
-	Image BStop, BRandom, BRandomUp, BRandomDown, BManual;
+	Image E1[MAX_HEIGHT];
+	Image E2[MAX_HEIGHT];
+	Image E3[MAX_HEIGHT];
+	Image E4[MAX_HEIGHT];
+	Image BStop, BRandom;
+	Image BFloorUp[MAX_HEIGHT];
+	Image BFloorDown[MAX_HEIGHT];
+
+	// Redesigning...
+	//Image E1, E2, E3, E4;
+	//Image E1F, E2F, E3F, E4F;
+	//Image BStop, BRandom, BRandomUp, BRandomDown, BManual;
 };

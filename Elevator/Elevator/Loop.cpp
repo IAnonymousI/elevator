@@ -6,21 +6,26 @@
 
 #include "Loop.h"
 
+// Constructor
 Loop::Loop() {
 
 	// Window is set to null pointer
 	window = nullptr;
 
 	// Screen Width
-	screenWidth = 640;
+	screenWidth = 512;
 
 	// Screen Height
-	screenHeight = 480;
+	screenHeight = 512;
 
 	// State of Loop
 	loopState = ON;
+
+	// Random Mode Flag
 	mRandom = DEACTIVATED;
 }
+
+// Destructor
 Loop::~Loop() {}
 
 // Initiates the simulation
@@ -36,6 +41,7 @@ void Loop::run() {
 // Initializes Loop
 void Loop::init() {
 	
+	// Pseudo-random
 	srand((unsigned int)time(NULL));
 
 	// Sets every floor
@@ -43,8 +49,9 @@ void Loop::init() {
 		floor[i].setFloor(i + 1);
 	}
 
+	// Sets every Elevator at level 1
 	for (int i = 0; i < N_ELEVATORS; i++) {
-		elevator[i].setLevel((i + 1) * 10);
+		elevator[i].setLevel(1);
 	}
 
 	// Initializes SDL
@@ -52,19 +59,45 @@ void Loop::init() {
 		reportError("SDL could not be initialized...");
 	}
 
+	// Initializes IMG
 	if (IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG) {
 		reportError("SDL_image could not be initialized...");
 	}
 
-	// Creates a window
+	// Creates window
 	window = SDL_CreateWindow("Elevator", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, screenWidth, screenHeight, SDL_WINDOW_OPENGL);
 	if (window == nullptr) {
 		reportError("SDL Window could not be created...");
 	}
 
+	// Creates renderer
 	renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-	background.init(renderer, 0, 0, 640, 480, "Textures/background.jpg");
+	background.init(renderer, 0, 0, 512, 512, "Textures/background.png");
+	background.draw();
+
+	for (int i = 0; i < MAX_HEIGHT; i++) {
+		int tY = 486 - 10 * i;
+		E1[i].init(renderer, 25, tY, 10, 10, "Textures/blank.png");
+		E2[i].init(renderer, 45, tY, 10, 10, "Textures/blank.png");
+		E3[i].init(renderer, 65, tY, 10, 10, "Textures/blank.png");
+		E4[i].init(renderer, 85, tY, 10, 10, "Textures/blank.png");
+		BFloorUp[i].init(renderer, 120, tY, 10, 10, "Textures/button_floor_up_off.png");
+		BFloorDown[i].init(renderer, 134, tY, 10, 10, "Textures/button_floor_down_off.png");
+		E1[i].draw();
+		E2[i].draw();
+		E3[i].draw();
+		E4[i].draw();
+		BFloorUp[i].draw();
+		BFloorDown[i].draw();
+	}
+
+	BStop.init(renderer, 175, 20, 128, 64, "Textures/button_stop.png");
+	BRandom.init(renderer, 313, 20, 94, 64, "Textures/button_random_short.png");
+	BStop.draw();
+	BRandom.draw();
+
+	/* Redesigning...
 	E1.init(renderer, 58, 5, 64, 25, "Textures/E1.png");
 	E2.init(renderer, 211, 5, 64, 25, "Textures/E2.png");
 	E3.init(renderer, 365, 5, 64, 25, "Textures/E3.png");
@@ -78,12 +111,8 @@ void Loop::init() {
 	BRandomUp.init(renderer, 277, 188, 30, 30, "Textures/button_random_up.png");
 	BRandomDown.init(renderer, 277, 222, 30, 30, "Textures/button_random_down.png");
 	BManual.init(renderer, 333, 188, 128, 64, "Textures/button_manual.png");
-
-	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-	SDL_RenderClear(renderer);
-	std::cout << SDL_GetError();
-
-	background.draw();
+	*/
+	/*
 	E1.draw();
 	E2.draw();
 	E3.draw();
@@ -97,6 +126,7 @@ void Loop::init() {
 	BRandomUp.draw();
 	BRandomDown.draw();
 	BManual.draw();
+	*/
 }
 
 void Loop::processInput(){
@@ -108,6 +138,7 @@ void Loop::processInput(){
 				BRandom.changeImage("Textures/button_random_short_pressed.png");
 				BRandom.draw();
 			}
+			/*
 			else if (withinBoundaries(&BRandomUp, e.motion.x, e.motion.y)) {
 				BRandomUp.changeImage("Textures/button_random_up_pressed.png");
 				BRandomUp.draw();
@@ -116,14 +147,17 @@ void Loop::processInput(){
 				BRandomDown.changeImage("Textures/button_random_down_pressed.png");
 				BRandomDown.draw();
 			}
+			*/
 			else if(withinBoundaries(&BStop, e.motion.x, e.motion.y)){
 				BStop.changeImage("Textures/button_stop_pressed.png");
 				BStop.draw();
 			}
+			/*
 			else if (withinBoundaries(&BManual, e.motion.x, e.motion.y)) {
 				BManual.changeImage("Textures/button_manual_pressed.png");
 				BManual.draw();
 			}
+			*/
 			break;
 		case SDL_MOUSEBUTTONUP:
 			if (withinBoundaries(&BRandom, e.motion.x, e.motion.y)) {
@@ -131,6 +165,7 @@ void Loop::processInput(){
 				BRandom.changeImage("Textures/button_random_short.png");
 				BRandom.draw();
 			}
+			/*
 			else if (withinBoundaries(&BRandomUp, e.motion.x, e.motion.y)) {
 				for (int i = 0; i < MAX_HEIGHT; i++) {
 					floor[i].incRate();
@@ -145,15 +180,18 @@ void Loop::processInput(){
 				BRandomDown.changeImage("Textures/button_random_down.png");
 				BRandomDown.draw();
 			}
+			*/
 			else if (withinBoundaries(&BStop, e.motion.x, e.motion.y)) {
 				mRandom = DEACTIVATED;
 				BStop.changeImage("Textures/button_stop.png");
 				BStop.draw();
 			}
+			/*
 			else if (withinBoundaries(&BManual, e.motion.x, e.motion.y)) {
 				BManual.changeImage("Textures/button_manual.png");
 				BManual.draw();
 			}
+			*/
 			break;
 		case SDL_QUIT:
 			loopState = LoopState::OFF;
@@ -203,7 +241,12 @@ void Loop::processLoop(){
 void Loop::update() {
 
 	// Updates the directions of elevators
-	updateDirections();
+	//updateDirections();
+	for (int i = 0; i < N_ELEVATORS; i++) {
+		if (elevator[i].getDirection() == STATIONARY) {
+			updateDirection(i);
+		}
+	}
 
 	// Moves elevators according to their direction and remove destinaions when they reach them
 	moveElevators();
@@ -228,14 +271,18 @@ void Loop::printCurrentState() {
 	std::cout << "\nRandomness Value: " << floor[0].getRValue();
 	for (int i = 0; i < N_ELEVATORS; i++) {
 		std::cout << "\nElevator " << i + 1 << " destinations: ";
-		for (auto d : *(elevator[i].getPDestinations())) {
+		for (auto d : *(elevator[i].getPBelow())) {
+			std::cout << d << " ";
+		}
+		std::cout << "[] ";
+		for (auto d : *(elevator[i].getPAbove())) {
 			std::cout << d << " ";
 		}
 	}
 }
 
 void Loop::updateWindow(){
-	updateEF();
+	updateEI();
 	SDL_RenderPresent(renderer);
 }
 
@@ -355,15 +402,75 @@ std::string Loop::getNumberImagePath(int n)
 	}
 }
 
-void Loop::updateEF(){
-	E1F.changeImage(getNumberImagePath(elevator[0].getLevel()));
-	E2F.changeImage(getNumberImagePath(elevator[1].getLevel()));
-	E3F.changeImage(getNumberImagePath(elevator[2].getLevel()));
-	E4F.changeImage(getNumberImagePath(elevator[3].getLevel()));
-	E1F.draw();
-	E2F.draw();
-	E3F.draw();
-	E4F.draw();
+std::string Loop::getElevatorImageFile(Direction d){
+	switch (d) {
+	case STATIONARY:
+		return "Textures/elevator_stationary.png";
+	case UP:
+		return "Textures/elevator_up.png";
+	case DOWN:
+		return "Textures/elevator_down.png";
+	}
+}
+
+// Updates Elevator images
+void Loop::updateEI(){
+	
+	E1[elevator[0].getLevel() - 1].changeImage(getElevatorImageFile(elevator[0].getDirection()));
+	E2[elevator[1].getLevel() - 1].changeImage(getElevatorImageFile(elevator[1].getDirection()));
+	E3[elevator[2].getLevel() - 1].changeImage(getElevatorImageFile(elevator[2].getDirection()));
+	E4[elevator[3].getLevel() - 1].changeImage(getElevatorImageFile(elevator[3].getDirection()));
+	E1[elevator[0].getLevel() - 1].draw();
+	E2[elevator[1].getLevel() - 1].draw();
+	E3[elevator[2].getLevel() - 1].draw();
+	E4[elevator[3].getLevel() - 1].draw();
+}
+
+void Loop::openDoor(int e){
+	elevator[e].pausedDirection = elevator[e].getDirection();
+	switch (e) {
+	case 0:
+		E1[elevator[0].getLevel() - 1].changeImage("Textures/elevator_open.png");
+		E1[elevator[0].getLevel() - 1].draw();
+		break;
+	case 1:
+		E2[elevator[1].getLevel() - 1].changeImage("Textures/elevator_open.png");
+		E2[elevator[1].getLevel() - 1].draw();
+		break;
+	case 2:
+		E3[elevator[2].getLevel() - 1].changeImage("Textures/elevator_open.png");
+		E3[elevator[2].getLevel() - 1].draw();
+		break;
+	case 3:
+		E4[elevator[3].getLevel() - 1].changeImage("Textures/elevator_open.png");
+		E4[elevator[3].getLevel() - 1].draw();
+		break;
+	}
+	elevator[e].setDirection(STATIONARY); 
+	elevator[e].counter++;
+}
+
+void Loop::closeDoor(int e) {
+	switch (e) {
+	case 0:
+		E1[elevator[0].getLevel() - 1].changeImage(getElevatorImageFile(elevator[e].pausedDirection));
+		E1[elevator[0].getLevel() - 1].draw();
+		break;
+	case 1:
+		E2[elevator[1].getLevel() - 1].changeImage(getElevatorImageFile(elevator[e].pausedDirection));
+		E2[elevator[1].getLevel() - 1].draw();
+		break;
+	case 2:
+		E3[elevator[2].getLevel() - 1].changeImage(getElevatorImageFile(elevator[e].pausedDirection));
+		E3[elevator[2].getLevel() - 1].draw();
+		break;
+	case 3:
+		E4[elevator[3].getLevel() - 1].changeImage(getElevatorImageFile(elevator[e].pausedDirection));
+		E4[elevator[3].getLevel() - 1].draw();
+		break;
+	}
+	elevator[e].setDirection(elevator[e].pausedDirection);
+	elevator[e].counter = 0;
 }
 
 // Returns the closest elevator
@@ -437,13 +544,13 @@ int Loop::t_arrival(int e, int f)
 	}
 	else if (elevator[e].getDirection() == UP) {
 		if (f < elevator[e].getLevel()) {
-			return getDistance(e, elevator[e].getPDestinations()->back()) + (elevator[e].getPDestinations()->back() - f);
+			return getDistance(e, elevator[e].getPAbove()->back()) + (elevator[e].getPAbove()->back() - f);
 		}
 		return getDistance(e, f);
 	}
 	else {
 		if (f > elevator[e].getLevel()) {
-			return getDistance(e, elevator[e].getPDestinations()->front()) + (f - elevator[e].getPDestinations()->front());
+			return getDistance(e, elevator[e].getPBelow()->front()) + (f - elevator[e].getPBelow()->front());
 		}
 		return getDistance(e, f);
 	}
@@ -453,27 +560,104 @@ int Loop::t_arrival(int e, int f)
 void Loop::moveElevators() {
 	for (int i = 0; i < N_ELEVATORS; i++) {
 
-		if (!(elevator[i].getPDestinations()->empty()) && elevator[i].getDirection() == STATIONARY) {
-			if (elevator[i].getLevel() == elevator[i].getPDestinations()->front()) {
-				elevator[i].getPDestinations()->pop_front();
+		// IF counter is 0 -> Not stopped, in motion
+		// IF counter is 1 ~ 3 -> Stopped, door stays opened
+		// IF counter is 4 -> Reached time limit, closes door
+		if (elevator[i].counter > 0) {
+			if (elevator[i].counter < 4) {
+				elevator[i].counter++;
+			}
+			else {
+				closeDoor(i);
 			}
 		}
 
-		// Going up -> Move up by S_ELEVATORS -> Check if it reached front
+		// Going up -> Remove the elevator image -> Move up by S_ELEVATORS -> Check if it reached front
 		// Reached front -> Remove front
 		if (elevator[i].getDirection() == UP) {
+
+			// Removes the elevator image
+			switch (i) {
+			case 0:
+				E1[elevator[0].getLevel() - 1].changeImage("Textures/blank.png");
+				E1[elevator[0].getLevel() - 1].draw();
+				break;
+			case 1:
+				E2[elevator[1].getLevel() - 1].changeImage("Textures/blank.png");
+				E2[elevator[1].getLevel() - 1].draw();
+				break;
+			case 2:
+				E3[elevator[2].getLevel() - 1].changeImage("Textures/blank.png");
+				E3[elevator[2].getLevel() - 1].draw();
+				break;
+			case 3:
+				E4[elevator[3].getLevel() - 1].changeImage("Textures/blank.png");
+				E4[elevator[3].getLevel() - 1].draw();
+				break;
+			}
+
 			elevator[i].setLevel(elevator[i].getLevel() + S_ELEVATORS);
-			if (elevator[i].getLevel() == elevator[i].getPDestinations()->front()) {
-				elevator[i].getPDestinations()->pop_front();
+			if (elevator[i].getLevel() == elevator[i].getPAbove()->front()) {
+				elevator[i].getPAbove()->pop_front();
+				elevator[i].pausedDirection = elevator[i].getDirection();
+				openDoor(i);
+
+				// Adds a random destination...
+				/*
+				int eb = floor[elevator[i].getLevel() - 1].pressElevatorButtons();
+				if (eb > elevator[i].getLevel()) {
+				elevator[i].addAbove(eb);
+				}
+				else if (eb < elevator[i].getLevel()) {
+				elevator[i].addBelow(eb);
+				}*/
+
+				// Checks whether direction needs to be changed
+				updateDirection(i);
 			}
 		}
 
-		// Going down -> Move down by S_ELEVATORS -> Check if it reached back
+		// Going down -> Remove the elevator image -> Move down by S_ELEVATORS -> Check if it reached back
 		// Reached back -> Remove back
 		else if (elevator[i].getDirection() == DOWN) {
+
+			// Removes the elevator image
+			switch (i) {
+			case 0:
+				E1[elevator[0].getLevel() - 1].changeImage("Textures/blank.png");
+				E1[elevator[0].getLevel() - 1].draw();
+				break;
+			case 1:
+				E2[elevator[1].getLevel() - 1].changeImage("Textures/blank.png");
+				E2[elevator[1].getLevel() - 1].draw();
+				break;
+			case 2:
+				E3[elevator[2].getLevel() - 1].changeImage("Textures/blank.png");
+				E3[elevator[2].getLevel() - 1].draw();
+				break;
+			case 3:
+				E4[elevator[3].getLevel() - 1].changeImage("Textures/blank.png");
+				E4[elevator[3].getLevel() - 1].draw();
+				break;
+			}
+
 			elevator[i].setLevel(elevator[i].getLevel() - S_ELEVATORS);
-			if (elevator[i].getLevel() == elevator[i].getPDestinations()->back()) {
-				elevator[i].getPDestinations()->pop_back();
+			if (elevator[i].getLevel() == elevator[i].getPBelow()->back()) {
+				elevator[i].getPBelow()->pop_back();
+				elevator[i].pausedDirection = elevator[i].getDirection();
+				openDoor(i);
+
+				// Adds a random destination...
+				/*
+				int eb = floor[elevator[i].getLevel() - 1].pressElevatorButtons();
+				if (eb > elevator[i].getLevel()) {
+				elevator[i].addAbove(eb);
+				}
+				else if (eb < elevator[i].getLevel()) {
+				elevator[i].addBelow(eb);
+				}*/
+
+				updateDirection(i);
 			}
 		}
 	}
@@ -488,6 +672,7 @@ void Loop::updateDirections() {
 
 // Updates the directions of elevators
 void Loop::updateDirection(int e) {
+	/*
 	if (elevator[e].getPDestinations()->empty()) {
 		elevator[e].setDirection(STATIONARY);
 	}
@@ -509,29 +694,65 @@ void Loop::updateDirection(int e) {
 			elevator[e].setDirection(UP);
 		}
 	}
+	*/
+	if (elevator[e].getPAbove()->empty()) {
+		if (elevator[e].getPBelow()->empty()) {
+			elevator[e].setDirection(STATIONARY);
+		}
+		else {
+			elevator[e].setDirection(DOWN);
+		}
+	}
+	else {
+		if (elevator[e].getPBelow()->empty()) {
+			elevator[e].setDirection(UP);
+		}
+	}
 }
 
 // Updates (randomly presses) buttons
 void Loop::randomPress() {
 	for (int i = 0; i < MAX_HEIGHT; i++) {
-		floor[i].pressButtons();
+		floor[i].pressFloorButtons();
 	}
 }
 
 // Checks whether elevators have reached their destinations and turns buttons off
+// Calculates the most available elevator and assigns it to the floor
 void Loop::updateDestinations() {
 	for (int i = 1; i <= MAX_HEIGHT; i++) {
 		if (floor[i - 1].getUpButton()) {
-			elevator[getAvailable(i, UP)].addDestination(i);
-			floor[i - 1].disableUpButton();
+			int a = getAvailable(i, UP);
+			if ((i - 1) > elevator[a].getLevel()) {
+				elevator[a].addAbove(i);
+				floor[i - 1].disableUpButton();
+			}
+			else if ((i - 1) < elevator[a].getLevel()) {
+				elevator[a].addBelow(i);
+				floor[i - 1].disableUpButton();
+			}
+			else {
+				floor[i - 1].disableUpButton();
+			}
 		}
 		else if (floor[i - 1].getDownButton()) {
-			elevator[getAvailable(i, DOWN)].addDestination(i);
-			floor[i - 1].disableDownButton();
+			int a = getAvailable(i, DOWN);
+			if ((i - 1) > elevator[a].getLevel()) {
+				elevator[a].addAbove(i);
+				floor[i - 1].disableDownButton();
+			}
+			else if ((i - 1) < elevator[a].getLevel()) {
+				elevator[a].addBelow(i);
+				floor[i - 1].disableDownButton();
+			}
+			else {
+				floor[i - 1].disableDownButton();
+			}
 		}
 	}
 }
 
+// Reports error
 void Loop::reportError(std::string e){
 	int pause;
 	std::cout << e << std::endl << "Press any key to continue...";
