@@ -1,0 +1,4 @@
+﻿  Loop.cpp
+c:\users\jinyoung park\documents\visual studio 2017\projects\elevator\elevator\loop.cpp(414): warning C4715: 'Loop::getElevatorImageFile': not all control paths return a value
+  Elevator.vcxproj -> C:\Users\Jinyoung Park\documents\visual studio 2017\Projects\Elevator\Debug\Elevator.exe
+  Elevator.vcxproj -> C:\Users\Jinyoung Park\documents\visual studio 2017\Projects\Elevator\Debug\Elevator.pdb (Partial PDB)
